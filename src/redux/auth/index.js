@@ -1,1 +1,1 @@
-export { registerUserThunk, loginUserThunk, loggedInUserThunk, authenticateGoogleUserThunk } from "./authThunks";
+export { registerUserThunk, loginUserThunk, loggedInUserThunk } from "./authThunks";
