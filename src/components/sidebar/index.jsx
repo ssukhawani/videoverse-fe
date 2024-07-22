@@ -4,10 +4,25 @@ import { cn } from '@/lib/utils'
 import { Layout, LayoutHeader } from '../layout'
 import { Button } from '../ui/button'
 import { UserNav } from '../user-nav'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../ui/tooltip'
+import UploadFileDialog from '@/pages/dashboard/video-upload-dailog'
+import { fetchVideosThunk } from '@/redux/videos'
+import { useDispatch } from 'react-redux'
 
 export default function Sidebar({ className }) {
+  const dispatch = useDispatch()
   const [navOpened, setNavOpened] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+
+  const handleUploadSuccess = () => {
+    dispatch(fetchVideosThunk())
+    setUploadDialogOpen(false)
+  }
 
   /* Make body not scrollable when navBar is opened */
   useEffect(() => {
@@ -69,21 +84,38 @@ export default function Sidebar({ className }) {
           </div>
         </LayoutHeader>
 
-        <div className='flex justify-center p-2 py-4'>
-          <TooltipProvider delayDuration={0}>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Button variant='secondary' className=''>
-                  <IconUpload />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side='right' className='flex items-center gap-4'>
-                Upload
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div
+          id='sidebar-menu'
+          className={`h-full flex-1 overflow-auto ${navOpened ? 'max-h-screen' : 'max-h-0 py-0 md:max-h-screen md:py-2'}`}
+        >
+          <div className='ww-full flex justify-center bg-white p-4'>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant='secondary'
+                    className=''
+                    onClick={() => setUploadDialogOpen(true)}
+                  >
+                    <IconUpload />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side='right'
+                  className='flex items-center gap-4'
+                >
+                  Upload
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </Layout>
+      <UploadFileDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onUploadSuccess={handleUploadSuccess}
+      />
     </aside>
   )
 }

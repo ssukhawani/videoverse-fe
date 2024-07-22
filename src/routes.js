@@ -58,12 +58,12 @@ export const getAllRoutes = (mainPageLoader, protectedLoader) => [
 
   // OPEN ERROR ROUTES
   // Error routes
-  { path: '/500', Component: GeneralError },
-  { path: '/404', Component: NotFoundError },
-  { path: '/503', Component: MaintenanceError },
+  // { path: '/500', Component: GeneralError },
+  // { path: '/404', Component: NotFoundError },
+  // { path: '/503', Component: MaintenanceError },
 
   // Fallback 404 route
-  { path: '*', Component: NotFoundError },
+  // { path: '*', Component: NotFoundError },
 ]
 
 export const getProtectedRoutes = (protectedLoader) => [
