@@ -1,4 +1,5 @@
 import {
+  fetchMergedVideosThunk,
   fetchTrimmedVideosThunk,
   fetchVideosThunk,
   setSelectedVideo,
@@ -9,21 +10,25 @@ import SelectedVideo from './video'
 import { videoService } from '@/services/serviceInstances'
 import RangeInput from './range-input'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const Dashboard = () => {
   const dispatch = useDispatch()
-  const { videos, selectedVideo, selectedVideoMeta, trimmedVideos } =
+  const { videos, selectedVideo, selectedVideoMeta, trimmedVideos, mergedVideos } =
     useSelector((state) => state.videos)
   const [thumbnails, setThumbnails] = useState([])
   const [loadingThumbnails, setLoadingThumbnails] = useState(false)
   const [loadingTrim, setLoadingTrim] = useState(false)
+  const [loadingMerge, setLoadingMerge] = useState(false)
 
   const [rStart, setRStart] = useState(0)
   const [rEnd, setREnd] = useState(100)
+  const [selectedTrimmedVideos, setSelectedTrimmedVideos] = useState([])
 
   useEffect(() => {
     dispatch(fetchVideosThunk())
     dispatch(fetchTrimmedVideosThunk())
+    dispatch(fetchMergedVideosThunk())
   }, [dispatch])
 
   useEffect(() => {
@@ -60,19 +65,40 @@ const Dashboard = () => {
     setLoadingTrim(true)
 
     try {
-      await videoService.postWithEndpoint(
-        `trim/${selectedVideo.id}/`,
-        {
-          start_time: startTime,
-          end_time: endTime,
-        }
-      )
+      await videoService.postWithEndpoint(`trim/${selectedVideo.id}/`, {
+        start_time: startTime,
+        end_time: endTime,
+      })
       // Update the state with the new trimmed video
       dispatch(fetchTrimmedVideosThunk())
     } catch (error) {
       console.error('Error trimming video:', error)
     } finally {
       setLoadingTrim(false)
+    }
+  }
+
+  const handleCheckboxChange = (videoId) => {
+    setSelectedTrimmedVideos((prevSelected) =>
+      prevSelected.includes(videoId)
+        ? prevSelected.filter((id) => id !== videoId)
+        : [...prevSelected, videoId]
+    )
+  }
+
+  const mergeVideos = async () => {
+    setLoadingMerge(true)
+
+    try {
+      await videoService.postWithEndpoint(`merge_trimmed_videos/`, {
+        video_ids: selectedTrimmedVideos,
+      })
+      // Update the state with the new merged videos
+      dispatch(fetchMergedVideosThunk())
+    } catch (error) {
+      console.error('Error merging videos:', error)
+    } finally {
+      setLoadingMerge(false)
     }
   }
 
@@ -83,7 +109,7 @@ const Dashboard = () => {
   return (
     <>
       <div className='w-full px-4 pt-6 md:pl-20 md:pt-16'>
-        <div className='grid gap-4 md:grid-cols-4'>
+        <div className='grid gap-4 md:grid-cols-5'>
           {/* Video List */}
           <div className='col-span-1 flex flex-col'>
             <h2 className='mb-4 text-xl font-semibold'>Uploaded Videos</h2>
@@ -118,17 +144,54 @@ const Dashboard = () => {
 
           {/* Output video list */}
           <div className='col-span-1 flex flex-col'>
-            <h2 className='mb-4 text-xl font-semibold'>Output Videos</h2>
+            <h2 className='mb-4 text-xl font-semibold'>Trimmed Videos</h2>
             <div className='max-h-[48vh] overflow-y-auto pr-4'>
               <ul className='space-y-4'>
-                {trimmedVideos.map((video, index) => (
-                  <li key={index} className='rounded border p-2'>
-                    <video
-                      src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.file_path}`}
-                      controls
-                      className='w-full'
+                {trimmedVideos.map((video) => (
+                  <li
+                    key={video.id}
+                    className='flex space-x-2 space-y-4 rounded border p-2'
+                  >
+                    <Checkbox
+                      checked={selectedTrimmedVideos.includes(video.id)}
+                      onCheckedChange={() => handleCheckboxChange(video.id)}
                     />
-                    <p className='text-blue-500 truncate'>{video.name}</p>
+                    <div className='flex-1 h-[140px] w-[160px]'>
+                      <video
+                        src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.file_path}`}
+                        controls
+                        className='w-full'
+                      />
+                      <p className='truncate text-blue-500'>{video.name}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {selectedTrimmedVideos.length > 0 && (
+              <Button className="my-4" loading={loadingMerge} onClick={mergeVideos}>
+                Merge Selected Videos
+              </Button>
+            )}
+          </div>
+
+          <div className='col-span-1 flex flex-col'>
+            <h2 className='mb-4 text-xl font-semibold'>Merged Videos</h2>
+            <div className='max-h-[48vh] overflow-y-auto pr-4'>
+              <ul className='space-y-4'>
+                {mergedVideos.map((video) => (
+                  <li
+                    key={video.id}
+                    className='flex space-x-2 space-y-4 rounded border p-2'
+                  >
+                    <div className='h-[160px] w-[160px] p-2 flex-1'>
+                      <video
+                        src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.file_path}`}
+                        controls
+                        className='w-full'
+                      />
+                      <p className='truncate text-blue-500'>{video.name}</p>
+                    </div>
                   </li>
                 ))}
               </ul>

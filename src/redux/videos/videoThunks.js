@@ -40,3 +40,16 @@ export const fetchTrimmedVideosThunk = createAsyncThunk(
     }
   }
 );
+
+// Thunk to fetch videos
+export const fetchMergedVideosThunk = createAsyncThunk(
+  'videos/fetchMergedVideos',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await videoService.get("merged_videos/");
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);

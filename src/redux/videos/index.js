@@ -1,6 +1,6 @@
 import videoSlice from "./videoSlice";
 
-export { fetchVideosThunk, uploadVideoThunk, fetchTrimmedVideosThunk } from "./videoThunks";
+export { fetchVideosThunk, uploadVideoThunk, fetchTrimmedVideosThunk, fetchMergedVideosThunk } from "./videoThunks";
 
 export default videoSlice;
 

@@ -1,7 +1,12 @@
 // videoSlice.js
 import { createSlice } from '@reduxjs/toolkit'
 import videoInitialState from './videoInitialState'
-import { fetchVideosThunk, uploadVideoThunk, fetchTrimmedVideosThunk } from './videoThunks'
+import {
+  fetchVideosThunk,
+  uploadVideoThunk,
+  fetchTrimmedVideosThunk,
+  fetchMergedVideosThunk,
+} from './videoThunks'
 
 const videoSlice = createSlice({
   name: 'videos',
@@ -54,6 +59,20 @@ const videoSlice = createSlice({
         state.trimmedVideos = action.payload
       })
       .addCase(fetchTrimmedVideosThunk.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+
+      // Fetch Merged Videos
+      .addCase(fetchMergedVideosThunk.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchMergedVideosThunk.fulfilled, (state, action) => {
+        state.loading = false
+        state.mergedVideos = action.payload
+      })
+      .addCase(fetchMergedVideosThunk.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
       })
