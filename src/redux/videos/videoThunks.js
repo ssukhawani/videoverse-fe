@@ -27,3 +27,16 @@ export const uploadVideoThunk = createAsyncThunk(
     }
   }
 );
+
+// Thunk to fetch videos
+export const fetchTrimmedVideosThunk = createAsyncThunk(
+  'videos/fetchTrimmedVideos',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await videoService.get("trimmed/");
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);

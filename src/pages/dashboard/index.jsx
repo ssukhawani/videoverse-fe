@@ -1,4 +1,8 @@
-import { fetchVideosThunk, setSelectedVideo } from '@/redux/videos'
+import {
+  fetchTrimmedVideosThunk,
+  fetchVideosThunk,
+  setSelectedVideo,
+} from '@/redux/videos'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import SelectedVideo from './video'
@@ -8,19 +12,18 @@ import { Button } from '@/components/ui/button'
 
 const Dashboard = () => {
   const dispatch = useDispatch()
-  const { videos, selectedVideo, selectedVideoMeta } = useSelector(
-    (state) => state.videos
-  )
+  const { videos, selectedVideo, selectedVideoMeta, trimmedVideos } =
+    useSelector((state) => state.videos)
   const [thumbnails, setThumbnails] = useState([])
   const [loadingThumbnails, setLoadingThumbnails] = useState(false)
   const [loadingTrim, setLoadingTrim] = useState(false)
 
   const [rStart, setRStart] = useState(0)
   const [rEnd, setREnd] = useState(100)
-  const [outputVideos, setOutputVideos] = useState([])
 
   useEffect(() => {
     dispatch(fetchVideosThunk())
+    dispatch(fetchTrimmedVideosThunk())
   }, [dispatch])
 
   useEffect(() => {
@@ -57,23 +60,15 @@ const Dashboard = () => {
     setLoadingTrim(true)
 
     try {
-      const response = await videoService.postWithEndpoint(
+      await videoService.postWithEndpoint(
         `trim/${selectedVideo.id}/`,
         {
           start_time: startTime,
           end_time: endTime,
         }
       )
-      const trimmedVideoUrl = response.trimmed_video_url
-
       // Update the state with the new trimmed video
-      setOutputVideos((prevVideos) => [
-        ...prevVideos,
-        {
-          url: trimmedVideoUrl,
-          name: `trimmed_${prevVideos.length + 1}.mp4`,
-        },
-      ])
+      dispatch(fetchTrimmedVideosThunk())
     } catch (error) {
       console.error('Error trimming video:', error)
     } finally {
@@ -88,7 +83,7 @@ const Dashboard = () => {
   return (
     <>
       <div className='w-full px-4 pt-6 md:pl-20 md:pt-16'>
-        <div className='grid grid-cols-4 gap-4'>
+        <div className='grid gap-4 md:grid-cols-4'>
           {/* Video List */}
           <div className='col-span-1 flex flex-col'>
             <h2 className='mb-4 text-xl font-semibold'>Uploaded Videos</h2>
@@ -124,16 +119,16 @@ const Dashboard = () => {
           {/* Output video list */}
           <div className='col-span-1 flex flex-col'>
             <h2 className='mb-4 text-xl font-semibold'>Output Videos</h2>
-            <div className='overflow-y-auto max-h-[48vh] pr-4'>
+            <div className='max-h-[48vh] overflow-y-auto pr-4'>
               <ul className='space-y-4'>
-                {outputVideos.map((video, index) => (
+                {trimmedVideos.map((video, index) => (
                   <li key={index} className='rounded border p-2'>
                     <video
-                      src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.url}`}
+                      src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.file_path}`}
                       controls
                       className='w-full'
                     />
-                    <p className='text-blue-500'>{video.name}</p>
+                    <p className='text-blue-500 truncate'>{video.name}</p>
                   </li>
                 ))}
               </ul>
