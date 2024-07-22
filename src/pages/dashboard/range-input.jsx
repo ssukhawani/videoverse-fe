@@ -51,7 +51,7 @@ export default function RangeInput({
           </div>
 
           <input
-            className="range"
+            className="range z-20"
             type="range"
             min={0}
             max={RANGE_MAX}

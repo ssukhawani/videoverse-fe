@@ -125,7 +125,7 @@ export function UserAuthForm({ className, ...props }) {
                 </FormItem>
               )}
             />
-            <Button className='mt-2' loading={loading}>
+            <Button className='mt-6' loading={loading}>
               Login
             </Button>
 

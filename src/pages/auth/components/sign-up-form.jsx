@@ -143,7 +143,7 @@ export function SignUpForm({ className, ...props }) {
                 </FormItem>
               )}
             />
-            <Button className='mt-2' loading={loading}>
+            <Button className='mt-6' loading={loading}>
               Create Account
             </Button>
           </div>

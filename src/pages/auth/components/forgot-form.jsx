@@ -75,7 +75,7 @@ export function ForgotForm({ className, ...props }) {
                 </FormItem>
               )}
             />
-            <Button className='mt-2' loading={isLoading}>
+            <Button className='mt-6' loading={isLoading}>
               Continue
             </Button>
           </div>

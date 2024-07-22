@@ -11,11 +11,17 @@ import { videoService } from '@/services/serviceInstances'
 import RangeInput from './range-input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { toast } from '@/components/ui/use-toast'
 
 const Dashboard = () => {
   const dispatch = useDispatch()
-  const { videos, selectedVideo, selectedVideoMeta, trimmedVideos, mergedVideos } =
-    useSelector((state) => state.videos)
+  const {
+    videos,
+    selectedVideo,
+    selectedVideoMeta,
+    trimmedVideos,
+    mergedVideos,
+  } = useSelector((state) => state.videos)
   const [thumbnails, setThumbnails] = useState([])
   const [loadingThumbnails, setLoadingThumbnails] = useState(false)
   const [loadingTrim, setLoadingTrim] = useState(false)
@@ -60,6 +66,14 @@ const Dashboard = () => {
   }
 
   const trimVideo = async () => {
+    if (!rStart || !rEnd) {
+      toast({
+        variant: 'destructive',
+        description: 'Please select range for trimming',
+      })
+      return
+    }
+
     const startTime = (rStart / 100) * selectedVideoMeta.duration
     const endTime = (rEnd / 100) * selectedVideoMeta.duration
     setLoadingTrim(true)
@@ -87,11 +101,18 @@ const Dashboard = () => {
   }
 
   const mergeVideos = async () => {
+    if (!selectedTrimmedVideos.length) {
+      toast({
+        variant: 'destructive',
+        description: 'Please select trimmed videos for merging',
+      })
+      return
+    }
     setLoadingMerge(true)
 
     try {
       await videoService.postWithEndpoint(`merge_trimmed_videos/`, {
-        video_ids: selectedTrimmedVideos,
+        video_ids: selectedTrimmedVideos.sort(),
       })
       // Update the state with the new merged videos
       dispatch(fetchMergedVideosThunk())
@@ -138,7 +159,7 @@ const Dashboard = () => {
                 />
               </>
             ) : (
-              <p>Select a video to preview</p>
+              <>{videos.length > 0 && <p>Select a video to preview</p>}</>
             )}
           </div>
 
@@ -156,7 +177,7 @@ const Dashboard = () => {
                       checked={selectedTrimmedVideos.includes(video.id)}
                       onCheckedChange={() => handleCheckboxChange(video.id)}
                     />
-                    <div className='flex-1 h-[140px] w-[160px]'>
+                    <div className='h-[140px] w-[140px] flex-1 p-1'>
                       <video
                         src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.file_path}`}
                         controls
@@ -168,11 +189,6 @@ const Dashboard = () => {
                 ))}
               </ul>
             </div>
-            {selectedTrimmedVideos.length > 0 && (
-              <Button className="my-4" loading={loadingMerge} onClick={mergeVideos}>
-                Merge Selected Videos
-              </Button>
-            )}
           </div>
 
           <div className='col-span-1 flex flex-col'>
@@ -184,7 +200,7 @@ const Dashboard = () => {
                     key={video.id}
                     className='flex space-x-2 space-y-4 rounded border p-2'
                   >
-                    <div className='h-[160px] w-[160px] p-2 flex-1'>
+                    <div className='h-[160px] w-[160px] flex-1 p-2'>
                       <video
                         src={`${import.meta.env.VITE_APP_BACKEND_MEDIA_URL}/${video.file_path}`}
                         controls
@@ -200,25 +216,32 @@ const Dashboard = () => {
         </div>
 
         {/* Timeline */}
-        {selectedVideo && (
-          <div className='mt-4'>
-            <div className='flex w-[73%] items-center justify-between gap-10'>
+        {videos.length > 0 && (
+          <div className='my-4'>
+            <div className='my-8 flex w-[78%] items-center justify-between gap-10'>
               <h2 className='text-xl font-semibold'>Video Timeline</h2>
-              <Button loading={loadingTrim} onClick={trimVideo}>
-                Trim Video
-              </Button>
+              <div className='flex gap-4'>
+                <Button loading={loadingTrim} onClick={trimVideo}>
+                  Trim Video
+                </Button>
+                <Button loading={loadingMerge} onClick={mergeVideos}>
+                  Merge Videos
+                </Button>
+              </div>
             </div>
-            <div className='rounded border p-2'>
-              <RangeInput
-                thumbNails={thumbnails}
-                rEnd={rEnd}
-                rStart={rStart}
-                handleUpdaterStart={handleUpdaterStart}
-                handleUpdaterEnd={handleUpdaterEnd}
-                loading={loadingThumbnails}
-                videoMeta={selectedVideoMeta}
-              />
-            </div>
+            {selectedVideo && (
+              <div className='rounded border p-2'>
+                <RangeInput
+                  thumbNails={thumbnails}
+                  rEnd={rEnd}
+                  rStart={rStart}
+                  handleUpdaterStart={handleUpdaterStart}
+                  handleUpdaterEnd={handleUpdaterEnd}
+                  loading={loadingThumbnails}
+                  videoMeta={selectedVideoMeta}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

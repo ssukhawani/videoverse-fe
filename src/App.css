@@ -128,7 +128,7 @@
   /* opacity: 1; */
   background: pink;
   cursor: ew-resize;
-  /* z-index: 2; */
+  z-index: 20;
 }
 
 .deck {
